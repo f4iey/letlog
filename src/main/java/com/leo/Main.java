@@ -17,6 +17,7 @@ public class Main {
 
     public static void main(String[] args) {
 
+        // reads config file
         try {
             Config.readConfigFile();
         } catch (Exception e) {
@@ -28,11 +29,11 @@ public class Main {
 
         new MainWindow();
 
+        // checks if databese exists, if not then creates new one
         boolean dbExists = new File(Config.getDbPath()).exists();
         if (!dbExists) {
-            Database db = new Database();
             try {
-                db.createdb();
+                Database.createdb();
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(MainWindow.mainFrame, "Unable to create database\n" + e.getMessage(),
                         "Error",
@@ -40,8 +41,9 @@ public class Main {
             }
         }
 
+        // loads records into table to be displayed
         try {
-            Database.insertRecordsIntoTable();
+            Database.loadRecordsIntoTable();
             System.gc();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(MainWindow.mainFrame,
@@ -50,6 +52,7 @@ public class Main {
         }
     }
 
+    // opens FileChooser to select ADI file and imports it into database
     public static void importAdif() {
 
         JFileChooser fileChooser = new JFileChooser();
@@ -66,9 +69,7 @@ public class Main {
 
             Optional<Adif3> adif = adiReader.read(buffInput);
 
-            Database db = new Database();
-
-            db.importRecords(adif);
+            Database.importRecords(adif);
 
             MainWindow.statusLabel
                     .setText("ADIF Import finished: processed " + adif.get().getRecords().size() + " records.");
@@ -79,7 +80,7 @@ public class Main {
 
         MainWindow.mainTableModel.setRowCount(0);
         try {
-            Database.insertRecordsIntoTable();
+            Database.loadRecordsIntoTable();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(MainWindow.mainFrame,
                     "Unable to insert records into table\n" + e.getMessage(), "Error",
@@ -88,5 +89,4 @@ public class Main {
 
         System.gc();
     }
-
 }

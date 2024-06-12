@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.table.DefaultTableModel;
@@ -32,7 +33,6 @@ public class MainWindow {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
         } catch (Exception e) {}
 
-        
         mainFrame.setSize(Config.getMainFrameSizeX(), Config.getMainFrameSizeY());
         mainFrame.setLayout(new BorderLayout());
         mainFrame.setTitle("LetLog");
@@ -48,6 +48,7 @@ public class MainWindow {
         mainTableModel.addColumn("RST RX");
         mainTableModel.addColumn("FREQ");
         mainTableModel.addColumn("MODE");
+        mainTableModel.addColumn("NAME");
         mainTableModel.addColumn("COMMENT");
 
         mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -87,23 +88,25 @@ public class MainWindow {
     }
 
     private static void createCenterPanel() {
-        JPanel centerJPanel = new JPanel();
+        JPanel centerPanel = new JPanel();
         JTable table = new JTable(mainTableModel);
         scrollPane = new JScrollPane(table);
 
-        centerJPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
-        centerJPanel.setLayout(new BorderLayout());
+        PromptPanel promptPanel = new PromptPanel();
+
+        centerPanel.setLayout(new BorderLayout());
 
         table.setRowHeight(25);
-        table.setFont(new Font("Serif", Font.ROMAN_BASELINE, 20));
-        table.getTableHeader().setFont(new Font("Serif", Font.BOLD, 16));
+        table.setFont(new Font("Areal", Font.ROMAN_BASELINE, 18));
+        table.getTableHeader().setFont(new Font("Areal", Font.BOLD, 16));
 
-        scrollPane.setPreferredSize(new Dimension(scrollPane.getPreferredSize().width, table.getRowHeight()*10+3));
-        
-        centerJPanel.add(scrollPane, BorderLayout.NORTH);
-        mainFrame.add(centerJPanel, BorderLayout.CENTER);
+        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        centerPanel.add(promptPanel, BorderLayout.SOUTH);
+
+        mainFrame.add(centerPanel, BorderLayout.CENTER);
     }
 
+    // updates Config and writes to config file before closing
     static void exit() {
         Config.setMainFrameSizeX(mainFrame.getWidth());
         Config.setMainFrameSizeY(mainFrame.getHeight());
@@ -113,16 +116,19 @@ public class MainWindow {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(mainFrame, "Unable to write configuration file\n" + e.getMessage(), "Error",
                     JOptionPane.ERROR_MESSAGE);
-
         }
 
         mainFrame.dispose();
         System.exit(0);
     }
 
+    // scrolls table to bottom 
     public static void mainTableScrollToBottom () {
-        scrollPane.revalidate();
-        scrollPane.getVerticalScrollBar().setValue(scrollPane.getVerticalScrollBar().getMaximum());
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                scrollPane.getVerticalScrollBar().setValue(scrollPane.getVerticalScrollBar().getMaximum());
+            }    
+        });
     }
-
 }
